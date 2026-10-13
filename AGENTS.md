@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Fetch TMDB movie data through the public read-only `getCatalog` server function, reading the API credential only inside its handler; this keeps credentials out of browser bundles.
