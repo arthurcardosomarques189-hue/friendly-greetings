@@ -96,7 +96,7 @@ function Index() {
   return (
     <main className="cine-app">
       <header className="topbar">
-        <a className="brand" href="#" onClick={e => { e.preventDefault(); setSection("Em destaque"); setQuery(""); setActiveGenre(0); }}>
+        <a className="brand" href="#" onClick={e => { e.preventDefault(); setSection("Em destaque"); setQuery(""); setActiveGenre(0); setPage(1); }}>
           <span className="brand-icon"><Clapperboard size={21} /></span><span>CINE<span className="brand-accent">VERSE</span></span>
         </a>
         <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`}>
