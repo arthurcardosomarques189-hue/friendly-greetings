@@ -44,7 +44,7 @@ export const manageAccess = createServerFn({ method: 'POST' }).middleware([requi
   if (data.action === 'create') {
     const result = await supabaseAdmin.auth.admin.createUser({ email: usernameEmail(data.username), password: data.password, email_confirm: true, user_metadata: { username: data.username, display_name: data.name } });
     if (result.error || !result.data.user) throw new Error('Não foi possível criar o acesso. Verifique se o usuário já existe e escolha uma senha forte.');
-    const subscription = await supabaseAdmin.from('subscriptions').insert({ user_id: result.data.user.id });
+    const subscription = await supabaseAdmin.from('subscriptions').upsert({ user_id: result.data.user.id, blocked: false }, { onConflict: 'user_id' });
     if (subscription.error) throw new Error('Conta criada, mas o acesso ainda precisa ser ativado.');
   } else if (data.action === 'password') {
     const result = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
