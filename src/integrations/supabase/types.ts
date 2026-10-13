@@ -14,16 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      movie_sources: {
+        Row: {
+          created_at: string
+          movie_id: number
+          playback_url: string
+          rights_confirmed: boolean
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          movie_id: number
+          playback_url: string
+          rights_confirmed?: boolean
+          title: string
+        }
+        Update: {
+          created_at?: string
+          movie_id?: number
+          playback_url?: string
+          rights_confirmed?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          contact: string
+          id: number
+          pix_key: string
+          recipient: string
+        }
+        Insert: {
+          contact?: string
+          id?: number
+          pix_key?: string
+          recipient?: string
+        }
+        Update: {
+          contact?: string
+          id?: number
+          pix_key?: string
+          recipient?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          confirmed_at: string
+          confirmed_by: string
+          expires_at: string
+          id: string
+          reference: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          confirmed_at?: string
+          confirmed_by: string
+          expires_at: string
+          id?: string
+          reference?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          confirmed_at?: string
+          confirmed_by?: string
+          expires_at?: string
+          id?: string
+          reference?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          blocked: boolean
+          expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          blocked?: boolean
+          expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          blocked?: boolean
+          expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      available_movies: {
+        Row: {
+          movie_id: number | null
+          title: string | null
+        }
+        Insert: {
+          movie_id?: number | null
+          title?: string | null
+        }
+        Update: {
+          movie_id?: number | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      confirm_monthly_payment: {
+        Args: { actor: string; payment_reference: string; target: string }
+        Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +305,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

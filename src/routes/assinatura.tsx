@@ -1,0 +1,15 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
+import { Clapperboard, Copy, Check, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { MONTHLY_PRICE_LABEL } from '@/lib/access';
+import { pageHead } from '@/lib/page-head';
+export const Route = createFileRoute('/assinatura')({ component: SubscriptionPage, head: () => pageHead('Assinatura mensal', 'Plano CineVerse por R$ 50,00 por mês, com Pix e acesso liberado pelo proprietário.') });
+function SubscriptionPage() {
+  const [copied, setCopied] = useState(false);
+  const result = useQuery({ queryKey: ['payment-settings'], queryFn: async () => { const [settings, content] = await Promise.all([supabase.from('payment_settings').select('*').maybeSingle(), supabase.from('available_movies').select('movie_id').limit(1)]); if (settings.error || content.error) throw new Error('Não foi possível consultar a assinatura.'); return { settings: settings.data, available: Boolean(content.data?.length) }; } });
+  const ready = result.data?.available && result.data.settings?.pix_key && result.data.settings?.recipient;
+  return <main className="cine-app"><header className="member-header"><Link to="/" className="brand"><Clapperboard className="brand-accent" /> CINEVERSE</Link><Link to="/auth">Entrar</Link></header><section className="subscription-page"><span className="section-kicker">CINEVERSE MENSAL</span><h1>Seu lugar no cinema.</h1><p className="plan-price">{MONTHLY_PRICE_LABEL}<span> / mês</span></p><div className="plan-facts"><p><Check /> Pagamento mensal por Pix</p><p><Check /> Usuário e senha exclusivos</p><p><ShieldCheck /> Acesso liberado por Arthur após confirmação</p></div>{result.isLoading ? <p>Consultando disponibilidade…</p> : result.isError ? <p role="alert">Não foi possível consultar a assinatura. Tente novamente.</p> : ready ? <div className="pix-details"><h2>Pagamento por Pix</h2><p>Recebedor: {result.data?.settings?.recipient}</p><p className="pix-key">{result.data?.settings?.pix_key}</p><Button onClick={async () => { await navigator.clipboard.writeText(result.data?.settings?.pix_key ?? ''); setCopied(true); }}>{copied ? <Check /> : <Copy />}{copied ? 'Chave copiada' : 'Copiar chave Pix'}</Button><p>Envie o comprovante a Arthur: {result.data?.settings?.contact || 'Contato ainda não informado'}</p><p>O acesso é liberado após a confirmação e vale por um mês. A renovação não é automática.</p></div> : <div className="availability-note"><h2>Assinaturas em preparação</h2><p>Os filmes completos ainda não estão disponíveis. Não faça pagamentos até a abertura das assinaturas.</p></div>}<Link to="/" className="text-link">Voltar ao catálogo</Link></section></main>;
+}
