@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T05:33:30.111158+00:00",
+  "generated_at": "2026-10-13T05:33:42.462901+00:00",
   "files": [
     {
       "path": "roadmap.md",
@@ -76,6 +76,10 @@
     {
       "path": "drizzle/schema.ts",
       "bytes": 60
+    },
+    {
+      "path": "supabase/migrations/202610130003_require_active_subscription_for_catalog.sql",
+      "bytes": 1503
     },
     {
       "path": "supabase/migrations/202610130002_dual_source_movie_catalog.sql",
