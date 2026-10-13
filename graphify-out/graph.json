@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T05:33:30.111158+00:00",
+  "generated_at": "2026-10-13T05:38:59.470587+00:00",
   "files": [
     {
       "path": "roadmap.md",
@@ -72,6 +72,10 @@
     {
       "path": "docs/dual-source-movie-catalog.md",
       "bytes": 2436
+    },
+    {
+      "path": "docs/portuguese-playback-readiness.md",
+      "bytes": 2501
     },
     {
       "path": "drizzle/schema.ts",
@@ -147,7 +151,7 @@
     },
     {
       "path": "src/routes/index.tsx",
-      "bytes": 18559
+      "bytes": 18693
     },
     {
       "path": "src/hooks/use-mobile.tsx",
