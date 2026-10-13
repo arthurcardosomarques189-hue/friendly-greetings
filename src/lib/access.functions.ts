@@ -53,12 +53,8 @@ export const manageAccess = createServerFn({ method: 'POST' }).middleware([requi
     const result = await supabaseAdmin.from('subscriptions').upsert({ user_id: data.userId, blocked: data.blocked });
     if (result.error) throw new Error('Não foi possível atualizar o bloqueio.');
   } else if (data.action === 'payment') {
-    const content = await supabaseAdmin.from('movie_sources').select('movie_id').eq('rights_confirmed', true).limit(1);
-    if (content.error || !content.data?.length) throw new Error('Adicione pelo menos um vídeo autorizado antes de confirmar pagamentos e ativar assinaturas.');
-    const settings = await supabaseAdmin.from('payment_settings').select('pix_key, recipient').eq('id', 1).maybeSingle();
-    if (!settings.data?.pix_key || !settings.data.recipient) throw new Error('Cadastre sua chave Pix e o nome do recebedor antes de confirmar pagamentos.');
     const result = await supabaseAdmin.rpc('confirm_monthly_payment', { target: data.userId, actor: context.userId, payment_reference: data.reference });
-    if (result.error) throw new Error('Não foi possível confirmar o pagamento.');
+    if (result.error) throw new Error(`Não foi possível confirmar o pagamento: ${result.error.message}`);
   } else if (data.action === 'settings') {
     const result = await supabaseAdmin.from('payment_settings').upsert({ id: 1, pix_key: data.pix_key, recipient: data.recipient, contact: data.contact });
     if (result.error) throw new Error('Não foi possível salvar os dados do Pix.');
