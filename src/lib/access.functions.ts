@@ -44,7 +44,7 @@ export const manageAccess = createServerFn({ method: 'POST' }).middleware([requi
   if (data.action === 'create') {
     const result = await supabaseAdmin.auth.admin.createUser({ email: usernameEmail(data.username), password: data.password, email_confirm: true, user_metadata: { username: data.username, display_name: data.name } });
     if (result.error || !result.data.user) throw new Error('Não foi possível criar o acesso. Verifique se o usuário já existe e escolha uma senha forte.');
-    const subscription = await supabaseAdmin.from('subscriptions').insert({ user_id: result.data.user.id });
+    const subscription = await supabaseAdmin.from('subscriptions').upsert({ user_id: result.data.user.id, blocked: false }, { onConflict: 'user_id' });
     if (subscription.error) throw new Error('Conta criada, mas o acesso ainda precisa ser ativado.');
   } else if (data.action === 'password') {
     const result = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
@@ -53,12 +53,8 @@ export const manageAccess = createServerFn({ method: 'POST' }).middleware([requi
     const result = await supabaseAdmin.from('subscriptions').upsert({ user_id: data.userId, blocked: data.blocked });
     if (result.error) throw new Error('Não foi possível atualizar o bloqueio.');
   } else if (data.action === 'payment') {
-    const content = await supabaseAdmin.from('movie_sources').select('movie_id').eq('rights_confirmed', true).limit(1);
-    if (content.error || !content.data?.length) throw new Error('Adicione pelo menos um vídeo autorizado antes de confirmar pagamentos e ativar assinaturas.');
-    const settings = await supabaseAdmin.from('payment_settings').select('pix_key, recipient').eq('id', 1).maybeSingle();
-    if (!settings.data?.pix_key || !settings.data.recipient) throw new Error('Cadastre sua chave Pix e o nome do recebedor antes de confirmar pagamentos.');
     const result = await supabaseAdmin.rpc('confirm_monthly_payment', { target: data.userId, actor: context.userId, payment_reference: data.reference });
-    if (result.error) throw new Error('Não foi possível confirmar o pagamento.');
+    if (result.error) throw new Error(`Não foi possível confirmar o pagamento: ${result.error.message}`);
   } else if (data.action === 'settings') {
     const result = await supabaseAdmin.from('payment_settings').upsert({ id: 1, pix_key: data.pix_key, recipient: data.recipient, contact: data.contact });
     if (result.error) throw new Error('Não foi possível salvar os dados do Pix.');
