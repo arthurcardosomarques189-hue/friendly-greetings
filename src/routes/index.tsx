@@ -36,7 +36,7 @@ const genres = [
   { label: "Animação", id: 16 }, { label: "Comédia", id: 35 }, { label: "Crime", id: 80 },
   { label: "Documentário", id: 99 }, { label: "Drama", id: 18 }, { label: "Fantasia", id: 14 },
   { label: "Ficção científica", id: 878 }, { label: "Mistério", id: 9648 },
-  { label: "Romance", id: 10749 }, { label: "Suspense", id: 53 }, { label: "Terror", id: 27 }, { label: "Família", id: 10751 }, { label: "Guerra", id: 10752 }, { label: "Música", id: 10402 }, { label: "História", id: 36 }, { label: "Faroeste", id: 37 },
+  { label: "Romance", id: 10749 }, { label: "Suspense", id: 53 }, { label: "Terror", id: 27 }, { label: "Família", id: 10751 }, { label: "Guerra", id: 10752 }, { label: "Música", id: 10402 }, { label: "História", id: 36 }, { label: "Faroeste", id: 37 }, { label: "Família", id: 10751 }, { label: "Guerra", id: 10752 }, { label: "Música", id: 10402 }, { label: "História", id: 36 }, { label: "Faroeste", id: 37 },
 ];
 const year = (m: Movie) => m.release_date?.slice(0, 4) || "—";
 
@@ -68,6 +68,7 @@ function Index() {
     let cancelled = false;
     setLoading(true);
     const params = new URLSearchParams({ api_key: apiKey, language: "pt-BR", region: "BR", page: String(page) });
+    if (activeGenre && !query.trim()) params.set("with_genres", String(activeGenre));
     const endpoint = query.trim()
       ? `https://api.themoviedb.org/3/search/movie?${params}&query=${encodeURIComponent(query.trim())}`
       : section === "Novidades"
@@ -82,7 +83,7 @@ function Index() {
       .catch((err) => { if (!cancelled) { setApiStatus("demo"); setApiError(err instanceof Error ? err.message : "Erro ao consultar a TMDB."); if (page === 1) { if (query.trim()) setMovies(demoMovies.filter(m => m.title.toLowerCase().includes(query.toLowerCase()))); else setMovies(demoMovies); } } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [apiKey, query, section, page]);
+  }, [apiKey, query, activeGenre, section, page]);
 
   const visibleMovies = useMemo(() => movies.filter(m =>
     (!activeGenre || m.genre_ids?.includes(activeGenre)) &&
