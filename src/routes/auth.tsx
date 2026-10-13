@@ -1,0 +1,13 @@
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useState, type FormEvent } from 'react';
+import { Clapperboard, Eye, EyeOff, KeyRound, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { usernameEmail } from '@/lib/access';
+import { pageHead } from '@/lib/page-head';
+export const Route = createFileRoute('/auth')({ component: AuthPage, head: () => pageHead('Entrar', 'Entre no CineVerse com o usuário e a senha fornecidos por Arthur.') });
+function AuthPage() {
+  const navigate = useNavigate(); const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [show, setShow] = useState(false); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+  async function submit(e: FormEvent) { e.preventDefault(); setBusy(true); setError(''); const result = await supabase.auth.signInWithPassword({ email: usernameEmail(username), password }); if (result.error) { setError('Usuário ou senha incorretos. Se precisar, solicite uma nova senha a Arthur.'); setBusy(false); return; } setPassword(''); await navigate({ to: '/conta', replace: true }); }
+  return <main className="cine-app auth-page"><Link to="/" className="brand"><Clapperboard className="brand-accent" /> CINEVERSE</Link><section className="auth-form"><span className="section-kicker"><KeyRound size={16} /> ACESSO EXCLUSIVO</span><h1>Bom ter você<br />por aqui.</h1><p>Entre com seu acesso CineVerse.</p><form onSubmit={submit}><label>Nome de usuário<input autoComplete="username" required pattern="[A-Za-z0-9_]{3,30}" value={username} onChange={e => setUsername(e.target.value)} placeholder="Seu usuário" /></label><label>Senha<div className="password-field"><input autoComplete="current-password" required type={show ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Sua senha" /><Button type="button" variant="ghost" size="icon" aria-label={show ? 'Ocultar senha' : 'Mostrar senha'} onClick={() => setShow(!show)}>{show ? <EyeOff /> : <Eye />}</Button></div></label>{error && <p className="form-error" role="alert">{error}</p>}<Button type="submit" className="wide-button" disabled={busy}>{busy ? 'Entrando…' : 'Entrar'}<ArrowRight /></Button></form><p className="quiet-note">Esqueceu sua senha? Peça a Arthur para redefini-la. Contas são criadas somente pelo proprietário.</p><Link to="/assinatura" className="text-link">Ainda não tem acesso? Ver assinatura</Link></section><p className="auth-footer">Cinema, boas histórias e você.</p></main>;
+}
