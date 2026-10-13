@@ -71,10 +71,6 @@ as $$
 declare
   new_expiry timestamptz;
 begin
-  if auth.uid() is distinct from actor then
-    raise exception 'Actor does not match authenticated user';
-  end if;
-
   if not exists (
     select 1 from public.user_roles ur
     where ur.user_id = actor and ur.role::text = 'admin'
@@ -117,4 +113,4 @@ end;
 $$;
 
 revoke all on function public.confirm_monthly_payment(uuid, uuid, text) from public, anon;
-grant execute on function public.confirm_monthly_payment(uuid, uuid, text) to authenticated, service_role;
+grant execute on function public.confirm_monthly_payment(uuid, uuid, text) to service_role;
