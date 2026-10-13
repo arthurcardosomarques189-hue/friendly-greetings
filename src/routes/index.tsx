@@ -36,7 +36,7 @@ const genres = [
   { label: "Animação", id: 16 }, { label: "Comédia", id: 35 }, { label: "Crime", id: 80 },
   { label: "Documentário", id: 99 }, { label: "Drama", id: 18 }, { label: "Fantasia", id: 14 },
   { label: "Ficção científica", id: 878 }, { label: "Mistério", id: 9648 },
-  { label: "Romance", id: 10749 }, { label: "Suspense", id: 53 }, { label: "Terror", id: 27 },
+  { label: "Romance", id: 10749 }, { label: "Suspense", id: 53 }, { label: "Terror", id: 27 }, { label: "Família", id: 10751 }, { label: "Guerra", id: 10752 }, { label: "Música", id: 10402 }, { label: "História", id: 36 }, { label: "Faroeste", id: 37 },
 ];
 const year = (m: Movie) => m.release_date?.slice(0, 4) || "—";
 
@@ -49,6 +49,10 @@ function Index() {
   const [saved, setSaved] = useState<number[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(12);
+  const [apiError, setApiError] = useState("");
   const [apiStatus, setApiStatus] = useState<"demo" | "live">("demo");
   const apiKey = (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env.VITE_TMDB_API_KEY;
 
@@ -63,20 +67,22 @@ function Index() {
     if (!apiKey) return;
     let cancelled = false;
     setLoading(true);
-    const params = new URLSearchParams({ api_key: apiKey, language: "pt-BR", region: "BR" });
+    const params = new URLSearchParams({ api_key: apiKey, language: "pt-BR", region: "BR", page: String(page) });
     const endpoint = query.trim()
       ? `https://api.themoviedb.org/3/search/movie?${params}&query=${encodeURIComponent(query.trim())}`
       : section === "Novidades"
         ? `https://api.themoviedb.org/3/movie/now_playing?${params}`
         : section === "Mais populares"
           ? `https://api.themoviedb.org/3/movie/popular?${params}`
-          : `https://api.themoviedb.org/3/movie/top_rated?${params}`;
+          : section === "Novidades"
+            ? `https://api.themoviedb.org/3/movie/now_playing?${params}`
+            : `https://api.themoviedb.org/3/discover/movie?${params}&sort_by=popularity.desc${section === "Marvel" ? "&with_companies=420%7C19551" : section === "Clássicos" ? "&primary_release_date.lte=1999-12-31&vote_count.gte=50&sort_by=primary_release_date.asc" : section === "Animação" ? "&with_genres=16" : ""}`;
     fetch(endpoint).then(r => { if (!r.ok) throw new Error("Não foi possível carregar o catálogo"); return r.json(); })
-      .then(data => { if (!cancelled && Array.isArray(data.results)) { setMovies(data.results); setApiStatus("live"); } })
-      .catch(() => { if (!cancelled) { setApiStatus("demo"); if (query.trim()) setMovies(demoMovies.filter(m => m.title.toLowerCase().includes(query.toLowerCase()))); else setMovies(demoMovies); } })
+      .then(data => { if (!cancelled && Array.isArray(data.results)) { setMovies(old => page === 1 ? data.results : [...old, ...data.results.filter((m: Movie) => !old.some(x => x.id === m.id))]); setTotalPages(Math.min(Number(data.total_pages || 1), 500)); setTotalResults(Number(data.total_results || data.results.length)); setApiError(""); setApiStatus("live"); } })
+      .catch((err) => { if (!cancelled) { setApiStatus("demo"); setApiError(err instanceof Error ? err.message : "Erro ao consultar a TMDB."); if (page === 1) { if (query.trim()) setMovies(demoMovies.filter(m => m.title.toLowerCase().includes(query.toLowerCase()))); else setMovies(demoMovies); } } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [apiKey, query, section]);
+  }, [apiKey, query, section, page]);
 
   const visibleMovies = useMemo(() => movies.filter(m =>
     (!activeGenre || m.genre_ids?.includes(activeGenre)) &&
@@ -93,15 +99,15 @@ function Index() {
           <span className="brand-icon"><Clapperboard size={21} /></span><span>CINE<span className="brand-accent">VERSE</span></span>
         </a>
         <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`}>
-          {["Início", "Filmes", "Novidades", "Clássicos", "Minha lista"].map(item =>
+          {["Início", "Filmes", "Novidades", "Clássicos", "Marvel", "Animação", "Minha lista"].map(item =>
             <button key={item} className={section === item || (item === "Início" && section === "Em destaque") ? "nav-link active" : "nav-link"}
-              onClick={() => { setSection(item === "Início" ? "Em destaque" : item === "Filmes" ? "Mais populares" : item); setQuery(""); setMenuOpen(false); }}>
+              onClick={() => { setSection(item === "Início" ? "Em destaque" : item === "Filmes" ? "Mais populares" : item); setQuery(""); setPage(1); setActiveGenre(0); setMenuOpen(false); }}>
               {item}
             </button>
           )}
         </nav>
         <div className="header-actions">
-          <label className="search-box"><Search size={17} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar filmes..." aria-label="Buscar filmes" />{query && <button onClick={() => setQuery("")} aria-label="Limpar busca"><X size={15} /></button>}</label>
+          <label className="search-box"><Search size={17} /><input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Buscar filmes..." aria-label="Buscar filmes" />{query && <button onClick={() => { setQuery(""); setPage(1); }} aria-label="Limpar busca"><X size={15} /></button>}</label>
           <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menu"><Menu /></button>
         </div>
       </header>
@@ -122,20 +128,22 @@ function Index() {
       <section className="catalog-section">
         <div className="section-heading">
           <div><p className="section-kicker">{section === "Minha lista" ? "GUARDADOS POR VOCÊ" : query ? "RESULTADOS DA BUSCA" : "ESCOLHIDOS PARA VOCÊ"}</p>
-            <h2>{section === "Minha lista" ? "Minha lista" : query ? `Buscar: “${query}”` : section === "Novidades" ? "Em cartaz e novidades" : section === "Clássicos" ? "Clássicos que marcaram época" : section === "Mais populares" ? "Filmes populares" : "Explore o catálogo"}</h2>
+            <h2>{section === "Minha lista" ? "Minha lista" : query ? `Buscar: “${query}”` : section === "Novidades" ? "Em cartaz e novidades"  : section === "Clássicos" ? "Clássicos que marcaram época" : section === "Marvel" ? "Universo Marvel e super-heróis" : section === "Animação" ? "Animações e desenhos" : section === "Mais populares" ? "Filmes populares" : "Explore o catálogo"}</h2>
           </div>
-          <div className="catalog-status"><span className={apiStatus === "live" ? "status-dot live" : "status-dot"} />{apiStatus === "live" ? "Catálogo atualizado" : "Modo demonstração"}</div>
+          <div className="catalog-status"><span className={apiStatus === "live" ? "status-dot live" : "status-dot"} />{apiStatus === "live" ? "TMDB conectada" : "Modo demonstração"}</div>
         </div>
 
-        {section !== "Minha lista" && <div className="genre-strip"><span className="genre-label"><ArrowDownWideNarrow size={15} /> GÊNEROS</span>{genres.map(g => <button key={g.id} onClick={() => setActiveGenre(g.id)} className={activeGenre === g.id ? "genre-chip selected" : "genre-chip"}>{g.label}</button>)}</div>}
+        {section !== "Minha lista" && <div className="genre-strip"><span className="genre-label"><ArrowDownWideNarrow size={15} /> GÊNEROS</span>{genres.map(g => <button key={g.id} onClick={() => { setActiveGenre(g.id); setPage(1); }} className={activeGenre === g.id ? "genre-chip selected" : "genre-chip"}>{g.label}</button>)}</div>}
 
-        {loading && <div className="loading-line"><span /> Atualizando catálogo...</div>}
+        {apiError && <p className="api-alert" role="status">{apiError} Confira se VITE_TMDB_API_KEY está configurada no projeto Lovable.</p>}
+        {loading && <div className="loading-line"><span /> {page > 1 ? "Carregando mais filmes..." : "Atualizando catálogo..."}</div>}
         {section === "Minha lista" ? (
           savedMovies.length ? <div className="movie-grid">{savedMovies.map(m => <MovieCard key={m.id} movie={m} saved={saved.includes(m.id)} onOpen={() => setSelected(m)} onSave={() => toggleSaved(m.id)} />)}</div>
           : <div className="empty-state"><Bookmark size={30} /><h3>Sua lista começa aqui</h3><p>Salve os filmes que quer assistir e encontre todos neste espaço.</p><button className="btn-primary" onClick={() => setSection("Em destaque")}>Explorar filmes</button></div>
         ) : visibleMovies.length ? <div className="movie-grid">{visibleMovies.map(m => <MovieCard key={m.id} movie={m} saved={saved.includes(m.id)} onOpen={() => setSelected(m)} onSave={() => toggleSaved(m.id)} />)}</div>
           : <div className="empty-state"><Search size={30} /><h3>Nenhum filme encontrado</h3><p>Tente outro título ou selecione um gênero diferente.</p><button className="btn-secondary" onClick={() => { setQuery(""); setActiveGenre(0); }}>Limpar filtros</button></div>}
-        <p className="catalog-note"><Film size={14} /> {apiStatus === "live" ? "Informações e imagens fornecidas pela The Movie Database (TMDB)." : "Prévia demonstrativa. Conecte uma chave da TMDB para pesquisar o catálogo atualizado."}</p>
+        {apiStatus === "live" && page < totalPages && section !== "Minha lista" && <div className="load-more-wrap"><p>Exibindo {movies.length.toLocaleString("pt-BR")} títulos nesta consulta de {totalResults.toLocaleString("pt-BR")} resultados.</p><button className="btn-primary load-more" disabled={loading} onClick={() => setPage(p => Math.min(p + 1, totalPages))}>Carregar mais filmes</button><span>Catálogo paginado para navegar sem deixar o site lento.</span></div>}
+        <p className="catalog-note"><Film size={14} /> {apiStatus === "live" ? "Informações e imagens fornecidas pela The Movie Database (TMDB)." : "Prévia demonstrativa. Configure VITE_TMDB_API_KEY para pesquisar milhares de filmes reais."}</p>
       </section>
 
       <footer className="footer"><a className="brand footer-brand" href="#"><span className="brand-icon"><Clapperboard size={18} /></span><span>CINE<span className="brand-accent">VERSE</span></span></a><p>Feito para quem ama boas histórias.</p><span className="footer-small">Este catálogo apresenta informações de filmes e não hospeda filmes completos.</span><div className="footer-links"><a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">Dados de filmes: TMDB</a><span>© {new Date().getFullYear()} CineVerse</span></div></footer>
