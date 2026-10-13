@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T05:37:30.429324+00:00",
+  "generated_at": "2026-10-13T05:38:59.470587+00:00",
   "files": [
     {
       "path": "roadmap.md",
@@ -72,6 +72,10 @@
     {
       "path": "docs/dual-source-movie-catalog.md",
       "bytes": 2436
+    },
+    {
+      "path": "docs/portuguese-playback-readiness.md",
+      "bytes": 2501
     },
     {
       "path": "drizzle/schema.ts",
