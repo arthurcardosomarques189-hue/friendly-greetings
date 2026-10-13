@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T05:20:32.557004+00:00",
+  "generated_at": "2026-10-13T05:32:07.868346+00:00",
   "files": [
     {
       "path": "roadmap.md",
@@ -46,6 +46,10 @@
       "bytes": 124
     },
     {
+      "path": ".lovasiri/sync.json",
+      "bytes": 80
+    },
+    {
       "path": "src/routeTree.gen.ts",
       "bytes": 4681
     },
@@ -66,8 +70,16 @@
       "bytes": 1064
     },
     {
+      "path": "docs/dual-source-movie-catalog.md",
+      "bytes": 2436
+    },
+    {
       "path": "drizzle/schema.ts",
       "bytes": 60
+    },
+    {
+      "path": "supabase/migrations/202610130002_dual_source_movie_catalog.sql",
+      "bytes": 3787
     },
     {
       "path": "supabase/migrations/202610130001_cineverse_subscriptions.sql",
