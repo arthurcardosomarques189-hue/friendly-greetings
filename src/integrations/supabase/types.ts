@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      movie_sources: {
+        Row: {
+          created_at: string
+          movie_id: number
+          playback_url: string
+          rights_confirmed: boolean
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          movie_id: number
+          playback_url: string
+          rights_confirmed?: boolean
+          title: string
+        }
+        Update: {
+          created_at?: string
+          movie_id?: number
+          playback_url?: string
+          rights_confirmed?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
       payment_settings: {
         Row: {
           contact: string
@@ -124,7 +148,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      available_movies: {
+        Row: {
+          movie_id: number | null
+          title: string | null
+        }
+        Insert: {
+          movie_id?: number | null
+          title?: string | null
+        }
+        Update: {
+          movie_id?: number | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       confirm_monthly_payment: {

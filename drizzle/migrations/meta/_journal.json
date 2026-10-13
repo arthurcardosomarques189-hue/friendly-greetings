@@ -8,6 +8,13 @@
       "when": 1791866802159,
       "tag": "0000_owner_managed_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791866843912,
+      "tag": "0001_authorized_movie_sources",
+      "breakpoints": true
     }
   ]
 }
